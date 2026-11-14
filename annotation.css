@@ -629,6 +629,7 @@
   user-select: none;
   background: #0d0e15;
   box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+  touch-action: pan-y;
 }
 
 /* Animated Cyber Laser Scanline */
@@ -2507,14 +2508,11 @@
 }
 
 /* When video is playing, hide the central play button */
-.ad-video-wrapper.playing .ad-play-orb-btn {
-  opacity: 0;
-  pointer-events: none;
-}
-
+.ad-video-wrapper.playing .ad-play-orb-btn,
 .ad-video-wrapper.playing:hover .ad-play-orb-btn {
-  opacity: 0.85;
-  pointer-events: auto;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  display: none !important;
 }
 
 .ad-video-footer {
@@ -2983,8 +2981,9 @@ html, body {
 }
 
 /* Card 3D Perspective Transition */
-.proof-card, .cap-card, .metric-card {
-  transition: transform 0.25s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.25s ease, border-color 0.25s ease !important;
+.proof-card, .cap-card, .metric-card, .checklist-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
   transform-style: preserve-3d;
   will-change: transform;
 }

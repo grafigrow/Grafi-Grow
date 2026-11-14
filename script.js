@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Load logo as image for particles
   const logoImg = new Image();
-  logoImg.src = 'logo.svg';
+  logoImg.src = '/logo.svg';
   let logoReady = false;
   logoImg.onload = () => { logoReady = true; };
 
@@ -130,8 +130,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const hamburger = document.getElementById('hamburger');
   const navLinks = document.getElementById('navLinks');
-  hamburger.addEventListener('click', () => { navLinks.classList.toggle('open'); });
-  navLinks.querySelectorAll('a').forEach(l => l.addEventListener('click', () => navLinks.classList.remove('open')));
+  if (hamburger && navLinks && !document.getElementById('navCenterMenu')) {
+    hamburger.addEventListener('click', () => { navLinks.classList.toggle('open'); });
+    navLinks.querySelectorAll('a').forEach(l => l.addEventListener('click', () => navLinks.classList.remove('open')));
+  }
 
   // ==================== SPLIT TEXT ANIMATION ====================
   document.querySelectorAll('.split-text').forEach(el => {
@@ -260,44 +262,51 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   const servicesGrid = document.getElementById('servicesGrid');
-  const revealTypes = ['reveal-left', 'reveal-right', 'reveal-flip', 'reveal-scale'];
-  servicesData.forEach((s, i) => {
-    const card = document.createElement('div');
-    const revType = revealTypes[i % revealTypes.length];
-    card.className = `service-card reveal ${revType} reveal-delay-${(i % 5) + 1}`;
-    card.innerHTML = `
-      <span class="service-num">${String(i + 1).padStart(2, '0')}</span>
-      <h3>${s.icon} ${s.title}</h3>
-      <p class="service-short">${s.short}</p>
-      <button class="service-toggle" data-index="${i}">
-        View Details
-        <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </button>`;
-    servicesGrid.appendChild(card);
-  });
+  if (servicesGrid) {
+    const revealTypes = ['reveal-left', 'reveal-right', 'reveal-flip', 'reveal-scale'];
+    servicesData.forEach((s, i) => {
+      const card = document.createElement('div');
+      const revType = revealTypes[i % revealTypes.length];
+      card.className = `service-card reveal ${revType} reveal-delay-${(i % 5) + 1}`;
+      card.innerHTML = `
+        <span class="service-num">${String(i + 1).padStart(2, '0')}</span>
+        <h3>${s.icon} ${s.title}</h3>
+        <p class="service-short">${s.short}</p>
+        <button class="service-toggle" data-index="${i}">
+          View Details
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>`;
+      servicesGrid.appendChild(card);
+    });
 
-  // Re-observe new reveals
-  servicesGrid.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+    // Re-observe new reveals
+    servicesGrid.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-  // Service Modal
-  const modal = document.getElementById('serviceModal');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalBody = document.getElementById('modalBody');
+    // Service Modal
+    const modal = document.getElementById('serviceModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
 
-  servicesGrid.addEventListener('click', e => {
-    const btn = e.target.closest('.service-toggle');
-    if (!btn) return;
-    const s = servicesData[parseInt(btn.dataset.index)];
-    modalTitle.textContent = s.icon + ' ' + s.title;
-    modalBody.textContent = s.detail;
-    modal.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  });
+    servicesGrid.addEventListener('click', e => {
+      const btn = e.target.closest('.service-toggle');
+      if (!btn) return;
+      const s = servicesData[parseInt(btn.dataset.index)];
+      if (modalTitle) modalTitle.textContent = s.icon + ' ' + s.title;
+      if (modalBody) modalBody.textContent = s.detail;
+      if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    });
 
-  function closeModal() { modal.classList.remove('active'); document.body.style.overflow = ''; }
-  document.getElementById('modalClose').addEventListener('click', closeModal);
-  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    function closeModal() { if (modal) modal.classList.remove('active'); document.body.style.overflow = ''; }
+    const modalClose = document.getElementById('modalClose');
+    if (modalClose) modalClose.addEventListener('click', closeModal);
+    if (modal) {
+      modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+    }
+  }
 
   // ==================== ACTIVE NAV LINK ====================
   const sections = document.querySelectorAll('section[id]');

@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // =========================================================================
   // 1. DAILY PROOFS & DELIVERABLES DATABASE
-  // Add new daily screenshots or video screen recordings here!
   // =========================================================================
   const DAILY_PROOFS = [
     {
@@ -35,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     {
       id: 'proof-img1',
       type: 'image',
-      category: 'video',
+      category: 'autonomous',
       title: 'EgoScale Multi-Clip Video Annotation Workspace',
       description: 'Live production pipeline displaying multi-clip video task assignment, automated pre-label ingestion, and state injection runtime with sub-second task queuing.',
       date: 'Production Batch #104',
@@ -60,14 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
     {
       id: 'proof-img2',
       type: 'image',
-      category: 'image',
-      title: 'Dense Object Interaction & Spatial Segmentation',
-      description: 'Fine-grained annotation isolating human hand actions, tool grasp trajectories, and exact object spatial coordinates without multi-class label bleed.',
+      category: 'medical',
+      title: 'Medical AI Cell Nuclei Segmentation Benchmark',
+      description: 'Histology benchmark with sub-micron contour tracing and double-doctor consensus audits for clinical AI diagnostic models.',
       date: 'Production Batch #103',
       tool: 'CVAT • Multi-Class Polygon',
-      accuracy: '99.5% Consistency',
-      instances: '3,200 masks',
-      imageSrc: '/proofs/proof_benchmark_autonomous.png'
+      accuracy: '99.88% Consistency',
+      instances: '8,500 nuclei masks',
+      imageSrc: '/proofs/proof_benchmark_medical.png'
     },
     {
       id: 'proof-v4',
@@ -86,13 +85,13 @@ document.addEventListener('DOMContentLoaded', () => {
       id: 'proof-img3',
       type: 'image',
       category: 'autonomous',
-      title: 'Spatial Bounding & Keypoint Annotation Workspace',
-      description: 'Multi-layer bounding boxes with coordinate validation, depth tags, and spatial reference frames prepared for computer vision model training.',
+      title: 'Industrial Micro-PCB Solder Defect QA Benchmark',
+      description: 'High-resolution 4K surface scan defect detection. Micro-polygon delineation with zero false negatives for automated manufacturing QA.',
       date: 'Production Batch #102',
-      tool: 'Custom Client Suite • CVAT',
-      accuracy: '99.9% Boundary Fit',
-      instances: '12,400 objects',
-      imageSrc: '/proofs/proof_benchmark_autonomous.png'
+      tool: 'CVAT • Micro-Surface Defect',
+      accuracy: '99.96% Defect Fit',
+      instances: '12,400 joints',
+      imageSrc: '/proofs/proof_benchmark_industrial.png'
     },
     {
       id: 'proof-v5',
@@ -145,8 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const filtered = DAILY_PROOFS.filter(item => {
       if (filter === 'all') return true;
-      if (filter === 'video') return item.type === 'video';
-      if (filter === 'image') return item.type === 'image';
+      if (filter === 'video') return item.type === 'video' || item.category === 'video';
+      if (filter === 'image') return item.type === 'image' || item.category === 'image';
       return item.category === filter;
     });
 
@@ -188,10 +187,18 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
       proofsGrid.appendChild(card);
+
+      // Trigger visibility so newly filtered items never stay hidden at opacity: 0
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          card.classList.add('visible');
+        }, index * 40);
+      });
     });
 
-    // Re-bind card raycast coordinates
+    // Re-bind dynamic interactive card effects
     bindCardRaycast();
+    bindCardTilt();
   }
 
   // Filter Buttons
@@ -207,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderProofs('all');
 
   // =========================================================================
-  // 3. VIDEO & LIGHTBOX MODAL HANDLERS
+  // 3. VIDEO & LIGHTBOX MODAL HANDLERS FOR DAILY PROOFS GRID
   // =========================================================================
   const videoModal = document.getElementById('videoModal');
   const videoIframe = document.getElementById('videoIframe');
@@ -228,29 +235,39 @@ document.addEventListener('DOMContentLoaded', () => {
     proofsGrid.addEventListener('click', e => {
       const mediaWrapper = e.target.closest('.proof-media-wrapper');
       if (!mediaWrapper) return;
+      e.stopPropagation();
 
       const itemId = mediaWrapper.getAttribute('data-item-id');
       const item = DAILY_PROOFS.find(p => p.id === itemId);
       if (!item) return;
 
       if (item.type === 'video') {
-        videoTitle.textContent = item.title;
-        videoIframe.src = `https://www.youtube.com/embed/${item.videoId}?autoplay=1&rel=0&modestbranding=1`;
-        videoModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (videoTitle) videoTitle.textContent = item.title;
+        if (videoIframe) videoIframe.src = `https://www.youtube.com/embed/${item.videoId}?autoplay=1&rel=0&modestbranding=1`;
+        if (videoModal) {
+          videoModal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
       } else {
-        lightboxTitle.textContent = item.title;
-        lightboxImg.src = item.imageSrc;
-        lightboxTool.textContent = item.tool;
-        lightboxAccuracy.textContent = item.accuracy;
-        lightboxInstances.textContent = item.instances;
-        lightboxBatch.textContent = item.date;
+        if (lightboxTitle) lightboxTitle.textContent = item.title;
+        if (lightboxImg) {
+          lightboxImg.src = item.imageSrc;
+          lightboxImg.alt = item.title;
+        }
+        if (lightboxTool) lightboxTool.textContent = item.tool;
+        if (lightboxAccuracy) lightboxAccuracy.textContent = item.accuracy;
+        if (lightboxInstances) lightboxInstances.textContent = item.instances;
+        if (lightboxBatch) lightboxBatch.textContent = item.date;
         
-        const waMsg = encodeURIComponent(`Hi GrafiGrow, I am inquiring about the dataset from your proof: "${item.title}" (${item.tool}). I need similar annotation.`);
-        lightboxWhatsappBtn.href = `https://wa.me/8801952767958?text=${waMsg}`;
+        if (lightboxWhatsappBtn) {
+          const waMsg = encodeURIComponent(`Hi GrafiGrow, I am inquiring about the dataset from your proof: "${item.title}" (${item.tool}). I need similar annotation.`);
+          lightboxWhatsappBtn.href = `https://wa.me/8801952767958?text=${waMsg}`;
+        }
 
-        lightboxModal.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        if (lightboxModal) {
+          lightboxModal.classList.add('active');
+          document.body.style.overflow = 'hidden';
+        }
       }
     });
   }
@@ -274,119 +291,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (videoModal) videoModal.addEventListener('click', e => { if (e.target === videoModal) closeVideoModal(); });
   if (lightboxModal) lightboxModal.addEventListener('click', e => { if (e.target === lightboxModal) closeLightboxModal(); });
 
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      closeVideoModal();
-      closeLightboxModal();
-    }
-  });
-
   // =========================================================================
-  // 4. INTERACTIVE BEFORE & AFTER SEGMENTATION SLIDER
+  // 4. TOP PRODUCTION BENCHMARK GALLERY LIGHTBOX (SEPARATE OVERLAY)
   // =========================================================================
-  const comparisonBox = document.getElementById('comparisonBox');
-  const sliderHandle = document.getElementById('sliderHandle');
-  const rawLayer = document.getElementById('rawLayer');
-  const rawInner = document.getElementById('rawInner');
-
-  if (comparisonBox && sliderHandle && rawLayer && rawInner) {
-    let isDragging = false;
-
-    function updateSlider(xPos) {
-      const rect = comparisonBox.getBoundingClientRect();
-      let offsetX = xPos - rect.left;
-      if (offsetX < 0) offsetX = 0;
-      if (offsetX > rect.width) offsetX = rect.width;
-
-      const percentage = (offsetX / rect.width) * 100;
-      sliderHandle.style.left = `${percentage}%`;
-      rawLayer.style.width = `${percentage}%`;
-      rawInner.style.width = `${rect.width}px`;
-    }
-
-    window.addEventListener('resize', () => {
-      rawInner.style.width = `${comparisonBox.offsetWidth}px`;
-    });
-    rawInner.style.width = `${comparisonBox.offsetWidth}px`;
-
-    sliderHandle.addEventListener('mousedown', () => { isDragging = true; });
-    window.addEventListener('mouseup', () => { isDragging = false; });
-    window.addEventListener('mousemove', e => {
-      if (!isDragging) return;
-      updateSlider(e.clientX);
-    });
-
-    sliderHandle.addEventListener('touchstart', () => { isDragging = true; }, { passive: true });
-    window.addEventListener('touchend', () => { isDragging = false; });
-    window.addEventListener('touchmove', e => {
-      if (!isDragging) return;
-      updateSlider(e.touches[0].clientX);
-    });
-
-    comparisonBox.addEventListener('click', e => {
-      updateSlider(e.clientX);
-    });
-  }
-
-  // =========================================================================
-  // 5. REAL WORKFLOW VIDEO + VOICE NARRATION + PROOF GALLERY
-  // =========================================================================
-
-// Native GrafiGrow Commercial Video Player Active
-
-  // --- Voice Narration Player ---
-  const voiceAudio = document.getElementById('explainerAudio');
-  const voicePlayBtn = document.getElementById('voicePlayBtn');
-  const voicePlayIcon = document.getElementById('voicePlayIcon');
-  const voiceProgressBar = document.getElementById('voiceProgressBar');
-  const voiceProgressWrap = document.getElementById('voiceProgressWrap');
-  const voiceTime = document.getElementById('voiceTime');
-
-  function fmtTime(sec) {
-    const m = Math.floor(sec / 60);
-    const s = Math.floor(sec % 60);
-    return `${m}:${String(s).padStart(2, '0')}`;
-  }
-
-  if (voicePlayBtn && voiceAudio) {
-    voicePlayBtn.addEventListener('click', () => {
-      if (voiceAudio.paused) {
-        voiceAudio.play().then(() => {
-          voicePlayIcon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
-        });
-      } else {
-        voiceAudio.pause();
-        voicePlayIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-      }
-    });
-
-    voiceAudio.addEventListener('timeupdate', () => {
-      const cur = voiceAudio.currentTime;
-      const dur = voiceAudio.duration || 47;
-      if (voiceProgressBar) {
-        voiceProgressBar.style.width = `${(cur / dur) * 100}%`;
-      }
-      if (voiceTime) {
-        voiceTime.textContent = `${fmtTime(cur)} / ${fmtTime(dur)}`;
-      }
-    });
-
-    voiceAudio.addEventListener('ended', () => {
-      voicePlayIcon.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
-    });
-
-    if (voiceProgressWrap) {
-      voiceProgressWrap.addEventListener('click', (e) => {
-        if (!voiceAudio.duration) return;
-        const rect = voiceProgressWrap.getBoundingClientRect();
-        const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        voiceAudio.currentTime = pct * voiceAudio.duration;
-      });
-    }
-  }
-
-  // --- Proof Screenshot Gallery + Lightbox ---
-  const proofCards = document.querySelectorAll('.proof-card');
+  const proofGalleryCards = document.querySelectorAll('#proofGalleryGrid .proof-card');
   const proofLightbox = document.getElementById('proofLightbox');
   const proofLightboxImg = document.getElementById('proofLightboxImg');
   const proofLightboxClose = document.getElementById('proofLightboxClose');
@@ -398,36 +306,154 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.overflow = '';
   }
 
-  proofCards.forEach(card => {
-    card.addEventListener('click', () => {
+  proofGalleryCards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
       const img = card.querySelector('img');
       if (img && proofLightbox && proofLightboxImg) {
         proofLightboxImg.src = img.src;
-        proofLightboxImg.alt = img.alt;
+        proofLightboxImg.alt = img.alt || 'Full-size proof screenshot';
         proofLightbox.classList.add('active');
         document.body.style.overflow = 'hidden';
       }
     });
   });
 
-  if (proofLightboxClose) {
-    proofLightboxClose.addEventListener('click', closeProofLightbox);
-  }
-
+  if (proofLightboxClose) proofLightboxClose.addEventListener('click', closeProofLightbox);
   if (proofLightbox) {
     proofLightbox.addEventListener('click', (e) => {
-      if (e.target === proofLightbox) {
-        closeProofLightbox();
-      }
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && proofLightbox.classList.contains('active')) {
-        closeProofLightbox();
-      }
+      if (e.target === proofLightbox) closeProofLightbox();
     });
   }
 
-  // 6. KINETIC TYPOGRAPHY: ROTATING HEADLINE
+  // Global ESC Key Closes Any Active Modal
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeVideoModal();
+      closeLightboxModal();
+      closeProofLightbox();
+    }
+  });
+
+  // =========================================================================
+  // 5. INTERACTIVE BEFORE & AFTER SEGMENTATION SLIDER
+  // =========================================================================
+  const comparisonBox = document.getElementById('comparisonBox');
+  const sliderHandle = document.getElementById('sliderHandle');
+  const rawLayer = document.getElementById('rawLayer');
+  const rawInner = document.getElementById('rawInner');
+
+  if (comparisonBox && sliderHandle && rawLayer && rawInner) {
+    let isDragging = false;
+
+    function updateSlider(clientX) {
+      const rect = comparisonBox.getBoundingClientRect();
+      let offsetX = clientX - rect.left;
+      if (offsetX < 0) offsetX = 0;
+      if (offsetX > rect.width) offsetX = rect.width;
+
+      const percentage = (offsetX / rect.width) * 100;
+      sliderHandle.style.left = `${percentage}%`;
+      rawLayer.style.width = `${percentage}%`;
+      rawInner.style.width = `${rect.width}px`;
+    }
+
+    function syncInnerWidth() {
+      const w = comparisonBox.clientWidth || comparisonBox.offsetWidth;
+      if (w > 0) {
+        rawInner.style.width = `${w}px`;
+      }
+    }
+
+    // Keep pixel-perfect inner image width on load, resize & orientation
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => syncInnerWidth());
+      ro.observe(comparisonBox);
+    } else {
+      window.addEventListener('resize', syncInnerWidth);
+    }
+    syncInnerWidth();
+
+    function onPointerDown(e) {
+      isDragging = true;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      updateSlider(clientX);
+    }
+
+    function onPointerMove(e) {
+      if (!isDragging) return;
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      if (clientX !== undefined) {
+        if (e.cancelable && e.touches) {
+          e.preventDefault();
+        }
+        updateSlider(clientX);
+      }
+    }
+
+    function onPointerUp() {
+      isDragging = false;
+    }
+
+    comparisonBox.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    comparisonBox.addEventListener('touchstart', onPointerDown, { passive: true });
+    window.addEventListener('touchmove', onPointerMove, { passive: false });
+    window.addEventListener('touchend', onPointerUp);
+  }
+
+  // =========================================================================
+  // 6. OFFICIAL GRAFIGROW COMMERCIAL AD CONTROLLER
+  // =========================================================================
+  const adVideo = document.getElementById('grafiGrowAdVideo');
+  const adVideoWrapper = document.getElementById('adVideoWrapper');
+  const adPlayOrbBtn = document.getElementById('adPlayOrbBtn');
+
+  function toggleAdPlayback() {
+    if (!adVideo) return;
+    if (adVideo.paused) {
+      adVideo.play().then(() => {
+        adVideo.controls = true;
+        if (adVideoWrapper) adVideoWrapper.classList.add('playing');
+      }).catch(err => {
+        console.warn('Playback error:', err);
+      });
+    } else {
+      adVideo.pause();
+      adVideo.controls = false;
+      if (adVideoWrapper) adVideoWrapper.classList.remove('playing');
+    }
+  }
+
+  if (adPlayOrbBtn) {
+    adPlayOrbBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAdPlayback();
+    });
+  }
+
+  if (adVideo) {
+    adVideo.addEventListener('click', () => {
+      toggleAdPlayback();
+    });
+    adVideo.addEventListener('play', () => {
+      adVideo.controls = true;
+      if (adVideoWrapper) adVideoWrapper.classList.add('playing');
+    });
+    adVideo.addEventListener('pause', () => {
+      adVideo.controls = false;
+      if (adVideoWrapper) adVideoWrapper.classList.remove('playing');
+    });
+    adVideo.addEventListener('ended', () => {
+      adVideo.controls = false;
+      if (adVideoWrapper) adVideoWrapper.classList.remove('playing');
+    });
+  }
+
+  // =========================================================================
+  // 7. KINETIC TYPOGRAPHY: ROTATING HEADLINE
   // =========================================================================
   const kineticWords = [
     'Segmentation',
@@ -456,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // 7. MOTION GRAPHICS: POINTER SPOTLIGHT & CARD SPECULAR BORDER LIGHTING
+  // 8. MOTION GRAPHICS: POINTER SPOTLIGHT & CARD SPECULAR BORDER LIGHTING
   // =========================================================================
   const spotlight = document.getElementById('cursorSpotlight');
   window.addEventListener('mousemove', e => {
@@ -482,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Kinetic Click Ripple Shockwave
   window.addEventListener('click', e => {
-    if (e.target.closest('input, textarea, .modal-close')) return;
+    if (e.target.closest('input, textarea, .modal-close, button, a')) return;
     const ripple = document.createElement('div');
     ripple.className = 'click-ripple';
     ripple.style.left = `${e.clientX}px`;
@@ -492,12 +518,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // =========================================================================
-  // 8. FAQ ACCORDION
+  // 9. FAQ ACCORDION
   // =========================================================================
   const faqItems = document.querySelectorAll('.faq-item');
   faqItems.forEach(item => {
     const questionBtn = item.querySelector('.faq-question');
     const answer = item.querySelector('.faq-answer');
+
+    if (!questionBtn || !answer) return;
 
     questionBtn.addEventListener('click', () => {
       const isActive = item.classList.contains('active');
@@ -527,7 +555,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // 9. SCROLL REVEAL OBSERVER
+  // 10. SCROLL REVEAL OBSERVER
   // =========================================================================
   const revealElements = document.querySelectorAll('.reveal');
   const observer = new IntersectionObserver((entries) => {
@@ -542,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
   revealElements.forEach(el => observer.observe(el));
 
   // =========================================================================
-  // 10. RE-ENGINEERED ROBUST MOBILE HAMBURGER CONTROLLER
+  // 11. RE-ENGINEERED ROBUST MOBILE HAMBURGER CONTROLLER
   // =========================================================================
   const hamburger = document.getElementById('hamburger');
   const navCenterMenu = document.getElementById('navCenterMenu');
@@ -579,77 +607,75 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-
   // =========================================================================
-  // OFFICIAL GRAFIGROW COMMERCIAL AD CONTROLLER
+  // 12. ACTIVE NAV SCROLL TRACKING
   // =========================================================================
-  const adVideo = document.getElementById('grafiGrowAdVideo');
-  const adVideoWrapper = document.getElementById('adVideoWrapper');
-  const adPlayOrbBtn = document.getElementById('adPlayOrbBtn');
+  const trackedSections = document.querySelectorAll('section[id]');
+  const navLinkItems = document.querySelectorAll('.nav-link-item');
+  let navTicking = false;
 
-  function toggleAdPlayback() {
-    if (!adVideo) return;
-    if (adVideo.paused) {
-      adVideo.play().then(() => {
-        if (adVideoWrapper) adVideoWrapper.classList.add('playing');
-      }).catch(err => {
-        console.warn('Playback error:', err);
+  window.addEventListener('scroll', () => {
+    if (!navTicking) {
+      window.requestAnimationFrame(() => {
+        let currentSectionId = '';
+        const scrollY = window.scrollY;
+
+        trackedSections.forEach(sec => {
+          if (scrollY >= sec.offsetTop - 140) {
+            currentSectionId = sec.id;
+          }
+        });
+
+        navLinkItems.forEach(link => {
+          const href = link.getAttribute('href');
+          if (href === '#' + currentSectionId) {
+            link.classList.add('active');
+          } else if (href && href.startsWith('#')) {
+            link.classList.remove('active');
+          }
+        });
+
+        navTicking = false;
       });
-    } else {
-      adVideo.pause();
-      if (adVideoWrapper) adVideoWrapper.classList.remove('playing');
+      navTicking = true;
     }
-  }
-
-  if (adPlayOrbBtn) {
-    adPlayOrbBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleAdPlayback();
-    });
-  }
-
-  if (adVideo) {
-    adVideo.addEventListener('click', toggleAdPlayback);
-    adVideo.addEventListener('play', () => {
-      if (adVideoWrapper) adVideoWrapper.classList.add('playing');
-    });
-    adVideo.addEventListener('pause', () => {
-      if (adVideoWrapper) adVideoWrapper.classList.remove('playing');
-    });
-    adVideo.addEventListener('ended', () => {
-      if (adVideoWrapper) adVideoWrapper.classList.remove('playing');
-    });
-  }
-
+  }, { passive: true });
 
   // =========================================================================
-  // 9. KINETIC MAGNETIC CURSOR & 3D PERSPECTIVE TILT ENGINE
+  // 13. KINETIC MAGNETIC CURSOR (EXCLUDING ABSOLUTE CENTER BUTTONS)
   // =========================================================================
-  const magneticEls = document.querySelectorAll('.btn-whatsapp-hero, .nav-whatsapp-pill, .ad-play-orb-btn, .btn-primary');
+  const magneticEls = document.querySelectorAll('.btn-whatsapp-hero, .nav-whatsapp-pill, .btn-primary, .btn-secondary');
   magneticEls.forEach(el => {
     el.addEventListener('mousemove', (e) => {
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left - rect.width / 2;
       const y = e.clientY - rect.top - rect.height / 2;
-      el.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px) scale(1.03)`;
+      el.style.transform = `translate(${x * 0.18}px, ${y * 0.18}px) scale(1.02)`;
     });
     el.addEventListener('mouseleave', () => {
       el.style.transform = '';
     });
   });
 
-  // 3D Perspective Tilt on Cards
-  const tiltCards = document.querySelectorAll('.proof-card, .cap-card, .metric-card');
-  tiltCards.forEach(card => {
-    card.addEventListener('mousemove', (e) => {
-      const rect = card.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `perspective(1000px) rotateX(${-y * 7}deg) rotateY(${x * 7}deg) translateY(-4px)`;
+  // =========================================================================
+  // 14. 60FPS 3D PERSPECTIVE TILT ENGINE
+  // =========================================================================
+  function bindCardTilt() {
+    const tiltCards = document.querySelectorAll('.proof-card, .cap-card, .metric-card, .checklist-card');
+    tiltCards.forEach(card => {
+      card.addEventListener('mousemove', (e) => {
+        const rect = card.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        card.style.transition = 'none';
+        card.style.transform = `perspective(1000px) rotateX(${-y * 6}deg) rotateY(${x * 6}deg) translateY(-4px)`;
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transition = 'transform 0.4s cubic-bezier(0.2, 0, 0, 1)';
+        card.style.transform = '';
+      });
     });
-    card.addEventListener('mouseleave', () => {
-      card.style.transform = '';
-    });
-  });
+  }
+  bindCardTilt();
 
 });
